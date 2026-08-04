@@ -1,6 +1,8 @@
 # Publishes the game to GitHub Pages so there is a URL to open on a phone.
-# Entirely optional: index.html works fine straight from disk. Enable it under
-# Settings -> Pages -> Source: GitHub Actions.
+#
+# Entirely optional - index.html works fine straight from disk, and there are
+# native builds on the Releases page. If the first run cannot turn Pages on by
+# itself, set Settings -> Pages -> Source: GitHub Actions and re-run it.
 name: Deploy to GitHub Pages
 
 on:
@@ -26,7 +28,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # enablement turns Pages on via the API the first time this runs, so the
+      # deploy doesn't fail with "Get Pages site failed" on a repo where nobody
+      # has flipped the setting yet.
       - uses: actions/configure-pages@v5
+        with:
+          enablement: true
 
       # The repository root is the site - there is nothing to build.
       - uses: actions/upload-pages-artifact@v3
