@@ -1,0 +1,18 @@
+{
+  "name": "trex-runner",
+  "productName": "T-Rex Runner",
+  "version": "1.0.0",
+  "description": "The offline dinosaur jumping game, as a desktop app.",
+  "main": "main.js",
+  "author": "T-Rex Runner",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build": "node build.js"
+  },
+  "devDependencies": {
+    "@electron/packager": "18.3.6",
+    "electron": "33.4.11"
+  }
+}

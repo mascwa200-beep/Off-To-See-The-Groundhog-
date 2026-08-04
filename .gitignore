@@ -1,0 +1,14 @@
+# Build output. The published binaries live on the Releases page, not in git -
+# the desktop bundles are ~100 MB each and git is the wrong place for them.
+android/build/
+android/app/build/
+android/.gradle/
+android/local.properties
+android/.idea/
+android/*.iml
+
+desktop/node_modules/
+desktop/build/
+
+node_modules/
+*.log
