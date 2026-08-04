@@ -1,0 +1,61 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.trexrunner.game'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.trexrunner.game"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    signingConfigs {
+        release {
+            storeFile file(TREX_STORE_FILE)
+            storePassword TREX_STORE_PASSWORD
+            keyAlias TREX_KEY_ALIAS
+            keyPassword TREX_KEY_PASSWORD
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            // There is no library code to strip and one small activity to keep,
+            // so shrinking buys nothing and only risks breaking the WebView.
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    // index.html at the repo root is the single source of truth; the APK just
+    // carries a copy of it.
+    sourceSets {
+        main {
+            assets.srcDirs += "$buildDir/generated/gameAssets"
+        }
+    }
+
+    lint {
+        abortOnError false
+    }
+}
+
+tasks.register('copyGame', Copy) {
+    from rootProject.file('../index.html')
+    into layout.buildDirectory.dir('generated/gameAssets')
+}
+
+tasks.named('preBuild') {
+    dependsOn 'copyGame'
+}
