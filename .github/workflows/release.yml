@@ -15,6 +15,10 @@ on:
   push:
     tags:
       - 'v*'
+  # Build (but don't publish) on pull requests, so a change that breaks either
+  # build is caught before it lands rather than at release time.
+  pull_request:
+    branches: [main]
 
 permissions:
   contents: write
@@ -75,6 +79,7 @@ jobs:
   release:
     name: Publish release
     needs: [android, desktop]
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
