@@ -23,6 +23,12 @@ on:
 permissions:
   contents: write
 
+# A newer push supersedes an in-flight build of the same ref. Releases are
+# never cancelled mid-publish, only pull-request builds.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   android:
     name: Android APK
