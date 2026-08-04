@@ -92,21 +92,42 @@ jobs:
           find artifacts -type f \( -name '*.apk' -o -name '*.zip' \) -exec cp {} release/ \;
           ls -la release
 
-      - uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          name: T-Rex Runner ${{ github.event.inputs.tag || github.ref_name }}
-          generate_release_notes: false
-          body: |
-            Pre-built, ready to run. Nothing to compile, no internet needed once downloaded.
+      # gh is preinstalled on the runner, so publishing needs no third-party
+      # action - one less thing that can be unavailable or break.
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
 
-            | Download | Platform | Notes |
-            |---|---|---|
-            | `TRexRunner.apk` | Android 5.0+ | Side-load it. Signed, no permissions, ~38 KB. |
-            | `TRexRunner-windows-x64.zip` | Windows 10/11 x64 | Unzip, run `TRexRunner.exe`. Portable, no installer. |
-            | `TRexRunner-linux-x64.zip` | Linux x64 | Unzip, run `./TRexRunner`. |
+          cat > notes.md <<'NOTES'
+          Pre-built and ready to run. Nothing to compile, and no internet needed
+          once downloaded.
 
-            Prefer no download at all? `index.html` in the repo is the whole game —
-            open it in any browser, online or off.
-          files: release/*
-          fail_on_unmatched_files: true
+          | Download | Platform | How to run it |
+          |---|---|---|
+          | `TRexRunner.apk` | Android 5.0+ | Copy to the phone and tap it. Signed, no permissions, ~38 KB. |
+          | `TRexRunner-windows-x64.zip` | Windows 10/11 x64 | Unzip, run `TRexRunner.exe`. Portable - no installer, no admin rights. |
+          | `TRexRunner-linux-x64.zip` | Linux x64 | Unzip, run `./TRexRunner`. |
+
+          Windows shows a SmartScreen warning the first time because the binary
+          has no paid code-signing certificate: *More info -> Run anyway*.
+
+          Prefer no download at all? `index.html` in the repo is the whole game -
+          open it in any browser, online or off.
+          NOTES
+
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG exists; replacing its assets."
+            gh release upload "$TAG" release/* --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" release/* \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "T-Rex Runner $TAG" \
+              --notes-file notes.md
+          fi
+
+          echo "Published:"
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json assets \
+            --jq '.assets[] | "  \(.name)  \(.size) bytes"'
